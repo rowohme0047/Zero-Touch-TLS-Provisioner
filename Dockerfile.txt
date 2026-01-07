@@ -1,0 +1,36 @@
+# Use a lightweight Debian base image
+FROM debian:bullseye-slim
+
+# Set environment variables
+ENV CERTBOT_EMAIL="romynewt87@gmail.com" 
+ENV DOMAIN_1="newtdevops.duckdns.org"
+ENV DOMAIN_2="devopspoc.duckdns.org"
+ENV CERT_DIR="/etc/letsencrypt/live"
+ENV OUTPUT_DIR="/output"
+ENV PFX_PASSWORD="YourPasswordHere@123"
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    certbot \
+    openssl \
+    curl \
+    dnsutils \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create necessary directories
+RUN mkdir -p /scripts ${OUTPUT_DIR}
+
+# Copy scripts to container
+COPY entrypoint.sh /entrypoint.sh
+COPY authenticator.sh /scripts/authenticator.sh
+COPY cleanup.sh /scripts/cleanup.sh
+
+# Set execute permissions for scripts
+RUN chmod +x /entrypoint.sh /scripts/authenticator.sh /scripts/cleanup.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Expose ports for transparency (optional; no need for DNS-01 challenge)
+EXPOSE 80 443
